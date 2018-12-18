@@ -41,6 +41,10 @@ public class Event {
         date = value;
     }
 
+    public Event(){
+
+    }
+
     public Event(int id, String name, String description, Date date) {
 
         this.id = id;
