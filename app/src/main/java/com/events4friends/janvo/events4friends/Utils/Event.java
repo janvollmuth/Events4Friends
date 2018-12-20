@@ -1,5 +1,7 @@
 package com.events4friends.janvo.events4friends.Utils;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.Date;
 
 public class Event {
@@ -8,48 +10,38 @@ public class Event {
     private String name;
     private String description;
     private Date date;
+    private LatLng position;
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int value) {
-        id = value;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String value) {
-        name = value;
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String value) {
-        description = value;
     }
 
     public Date getDate() {
         return date;
     }
 
-    public void setDate(Date value) {
-        date = value;
+    public LatLng getPosition() {
+        return position;
     }
 
     public Event(){
 
     }
 
-    public Event(int id, String name, String description, Date date) {
+    public Event(int id, String name, String description, Date date, LatLng position) {
 
         this.id = id;
         this.name = name;
         this.description = description;
         this.date = date;
+        this.position = position;
     }
 }
