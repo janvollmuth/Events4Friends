@@ -1,6 +1,7 @@
 package com.events4friends.janvo.events4friends;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
@@ -8,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -17,7 +19,7 @@ import android.widget.TextView;
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
 import com.events4friends.janvo.events4friends.Utils.Data;
 
-public class ListActivity extends AppCompatActivity {
+public class ListActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     private static final String TAG = "HomeActivity";
     private static final int ACTIVITY_NUM = 0;
@@ -25,7 +27,6 @@ public class ListActivity extends AppCompatActivity {
     private ListView listView;
     private Context mContext = ListActivity.this;
     private Data data;
-    private int[] images = {R.drawable.test_event_image};
     private Data newData;
     private boolean listDefault;
     private SearchView searchView;
@@ -73,6 +74,7 @@ public class ListActivity extends AppCompatActivity {
         CustomAdapter customAdapter = new CustomAdapter();
 
         listView.setAdapter(customAdapter);
+        listView.setOnItemClickListener(this);
     }
 
     private void setupSearchView() {
@@ -141,6 +143,18 @@ public class ListActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+        Intent intent = new Intent(mContext, ListObjectActivity.class);
+        //TODO: ID des Events übergeben und nicht die Position in der Liste, da sonst das falsche Event geöffnet wird
+        position++;
+        intent.addFlags(position);
+
+        mContext.startActivity(intent);
+
+    }
+
     class CustomAdapter extends BaseAdapter {
 
         @Override
@@ -178,13 +192,13 @@ public class ListActivity extends AppCompatActivity {
 
             if(newData.getEventList().size() == 0) {
 
-                imageView.setImageResource(images[0]);
+                imageView.setImageResource(data.getEventList().get(position).getImage());
                 textview_name.setText(data.getEventList().get(position).getName());
                 textview_description.setText(data.getEventList().get(position).getDescription());
 
             }else {
 
-                imageView.setImageResource(images[0]);
+                imageView.setImageResource(newData.getEventList().get(position).getImage());
                 textview_name.setText(newData.getEventList().get(position).getName());
                 textview_description.setText(newData.getEventList().get(position).getDescription());
             }
