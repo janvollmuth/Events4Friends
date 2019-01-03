@@ -1,27 +1,21 @@
 package com.events4friends.janvo.events4friends.Utils;
 
-import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.Date;
 
 public class Data extends Event{
 
-    private ArrayList<Event> eventList;
+    private static ArrayList<Event> eventList;
 
-    public ArrayList<Event> getEventList() {
+    public static ArrayList<Event> getEventList() {
         return eventList;
     }
 
-    public Data(Boolean empty){
+    public Data(){
 
-        this.eventList = new ArrayList<>();
-
-        if(empty) {
-            //leere Liste
-        }else {
-            createEventList();
-        }
+        eventList = new ArrayList<>();
+        createEventList();
     }
 
     private void createEventList(){
@@ -31,12 +25,12 @@ public class Data extends Event{
         String name1 = "Privatparty 1";
         String description1 = "Diese Party wird der Hammer!";
         Date date1 = new Date(12);
-        LatLng position1 = new LatLng(48.0396805,9.3257261 );
+        String address1 = "Lehmgrubenstraße 12 Mengen";
 
-        Event event1 = new Event(id1, name1, description1, date1, position1);
+        Event event1 = new Event(id1, name1, description1, date1, address1);
 
         //Event 2
-        Event event2 = new Event(2, "Privatparty 2", description1, date1, new LatLng(48.0390492, 9.3270052));
+        Event event2 = new Event(2, "Privatparty 2", description1, date1, "Weithartstraße 8 Mengen");
 
         //Event 3
         Event event3 = new Event(3, "Privatparty 3", description1, date1, null);

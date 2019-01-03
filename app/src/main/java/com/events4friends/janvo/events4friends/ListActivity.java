@@ -2,9 +2,12 @@ package com.events4friends.janvo.events4friends;
 
 import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +21,13 @@ import android.widget.TextView;
 
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
 import com.events4friends.janvo.events4friends.Utils.Data;
+import com.events4friends.janvo.events4friends.Utils.Event;
+import com.google.android.gms.maps.model.LatLng;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class ListActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
@@ -26,10 +36,12 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private ListView listView;
     private Context mContext = ListActivity.this;
+    private ArrayList<Event> eventList;
+    private ArrayList<Event> newEventList;
     private Data data;
-    private Data newData;
     private boolean listDefault;
     private SearchView searchView;
+    private LatLng myposition = new LatLng(48.0353709, 9.3265154);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +53,38 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
         setupBottomNavigationView();
         setupListView();
+        setupCoordinates();
         setupSearchView();
+    }
+
+    private void setupCoordinates() {
+
+        Log.d("myLog", "setup Coordinates");
+        String myCity = "";
+
+        Geocoder geocoder = new Geocoder(ListActivity.this, Locale.getDefault());
+
+        for(int i = 0; i < Data.getEventList().size(); i++) {
+
+            if(Data.getEventList().get(i).getAddress() != null) {
+                List<Address> addresses = null;
+                try {
+                    addresses = geocoder.getFromLocationName(Data.getEventList().get(i).getAddress(), 1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                Address address = null;
+                if (addresses != null) {
+                    address = addresses.get(0);
+                }
+                LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+
+                Data.getEventList().get(i).setPosition(latLng);
+                Log.d("myLog", "Coordinates: " + Data.getEventList().get(i).getPosition());
+            }
+
+        }
     }
 
     private void setupBottomNavigationView() {
@@ -61,13 +104,15 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
         listDefault = true;
 
-        data = new Data(false);
+        data = new Data();
 
-        System.out.println(data.getEventList());
+        System.out.println(Data.getEventList());
 
-        newData = new Data(true);
+        eventList = Data.getEventList();
 
-        System.out.println(newData.getEventList());
+        newEventList = new ArrayList<>();
+
+        System.out.println(newEventList);
 
         listView = findViewById(R.id.listview);
 
@@ -106,13 +151,13 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
                     listDefault = false;
 
-                    for(int i = 0; i < data.getEventList().size(); i++) {
+                    for(int i = 0; i < Data.getEventList().size(); i++) {
 
                         //System.out.println(newText + " " + data.getEventList().get(i).getName().toLowerCase().contains(newText));
 
-                        if(data.getEventList().get(i).getName().toLowerCase().contains(newText) && !newData.getEventList().contains(data.getEventList().get(i))) {
+                        if(eventList.get(i).getName().toLowerCase().contains(newText) && !newEventList.contains(eventList.get(i))) {
 
-                            newData.getEventList().add(data.getEventList().get(i));
+                            newEventList.add(Data.getEventList().get(i));
                         }
                     }
 
@@ -127,17 +172,17 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
                     int i = 0;
                     listDefault = true;
 
-                    while(newData.getEventList().size() != 0) {
+                    while(newEventList.size() != 0) {
 
                         //System.out.println("Size:" + newData.getEventList().size() + "Removing: " + newData.getEventList().get(i).getName());
-                        newData.getEventList().remove(i);
+                        newEventList.remove(i);
 
                     }
 
                     CustomAdapter customAdapter = new CustomAdapter();
                     listView.setAdapter(customAdapter);
-                    //showLists();
                 }
+                //showLists();
                 return true;
             }
         });
@@ -146,10 +191,21 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
+        Log.d("myLog", "Position: " + position);
+        Log.d("myLog", "ID: " + id);
+        Log.d("myLog", "View: " + view);
+
         Intent intent = new Intent(mContext, ListObjectActivity.class);
-        //TODO: ID des Events übergeben und nicht die Position in der Liste, da sonst das falsche Event geöffnet wird
-        position++;
-        intent.addFlags(position);
+
+        if(newEventList.size() != 0){
+            Event event = newEventList.get(position);
+            int eventId = event.getId();
+            intent.addFlags(eventId);
+        }else {
+            Event event = eventList.get(position);
+            int eventId = event.getId();
+            intent.addFlags(eventId);
+        }
 
         mContext.startActivity(intent);
 
@@ -160,12 +216,12 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
         @Override
         public int getCount() {
 
-            if(newData.getEventList().size() == 0 && listDefault == true) {
-                return data.getEventList().size();
-            }else if(newData.getEventList().size() == 0 && listDefault == false){
-                return newData.getEventList().size();
+            if(newEventList.size() == 0 && listDefault) {
+                return Data.getEventList().size();
+            }else if(newEventList.size() == 0 && !listDefault){
+                return newEventList.size();
             }else {
-                return newData.getEventList().size();
+                return newEventList.size();
             }
         }
 
@@ -190,17 +246,17 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
             TextView textview_name = convertView.findViewById(R.id.event_name);
             TextView textview_description = convertView.findViewById(R.id.event_description);
 
-            if(newData.getEventList().size() == 0) {
+            if(newEventList.size() == 0) {
 
-                imageView.setImageResource(data.getEventList().get(position).getImage());
-                textview_name.setText(data.getEventList().get(position).getName());
-                textview_description.setText(data.getEventList().get(position).getDescription());
+                imageView.setImageResource(eventList.get(position).getImage());
+                textview_name.setText(eventList.get(position).getName());
+                textview_description.setText(eventList.get(position).getDescription());
 
             }else {
 
-                imageView.setImageResource(newData.getEventList().get(position).getImage());
-                textview_name.setText(newData.getEventList().get(position).getName());
-                textview_description.setText(newData.getEventList().get(position).getDescription());
+                imageView.setImageResource(newEventList.get(position).getImage());
+                textview_name.setText(newEventList.get(position).getName());
+                textview_description.setText(newEventList.get(position).getDescription());
             }
             return convertView;
         }
@@ -208,15 +264,15 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void showLists() {
 
-        for(int i = 0; i < data.getEventList().size(); i++) {
-            System.out.println("eventList " + data.getEventList().get(i).getName());
+        for(int i = 0; i < eventList.size(); i++) {
+            System.out.println("eventList " + eventList.get(i).getName());
         }
 
-        for(int i = 0; i < newData.getEventList().size(); i++) {
-            System.out.println("newEventList " + newData.getEventList().get(i).getName());
+        for(int i = 0; i < newEventList.size(); i++) {
+            System.out.println("newEventList " + newEventList.get(i).getName());
         }
 
-        if(newData.getEventList().size() == 0) {
+        if(newEventList.size() == 0) {
             System.out.println("Liste leer");
         }
 

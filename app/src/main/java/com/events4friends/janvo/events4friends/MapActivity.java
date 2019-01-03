@@ -1,28 +1,28 @@
 package com.events4friends.janvo.events4friends;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
 import com.events4friends.janvo.events4friends.Utils.Data;
+import com.events4friends.janvo.events4friends.Utils.Event;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
 
@@ -38,22 +38,27 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Context mContext = MapActivity.this;
     private LocationManager locationManager;
     private LatLng myposition = new LatLng(48.0353709, 9.3265154);
+    private ArrayList<Event> eventList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
+        eventList = Data.getEventList();
+
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
 
         setupBottomNavigationView();
     }
 
     private void setupBottomNavigationView() {
 
-        BottomNavigationView bottomNavigationView = (BottomNavigationView) findViewById(R.id.navigation);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.navigation);
         BottomNavigationViewHelper.enableNavigation(mContext, bottomNavigationView);
         Menu menu = bottomNavigationView.getMenu();
         MenuItem menuItem = menu.getItem(ACTIVITY_NUM);
@@ -63,17 +68,18 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        Data eventList = new Data(false);
+        for(int i = 0; i < eventList.size(); i++) {
 
-        for(int i = 0; i < eventList.getEventList().size(); i++) {
+            if(eventList.get(i).getPosition() != null) {
 
-            if(eventList.getEventList().get(i).getPosition() != null) {
-
-                LatLng position = eventList.getEventList().get(i).getPosition();
+                LatLng position = eventList.get(i).getPosition();
                 googleMap.addMarker(new MarkerOptions().position(position)
-                        .title(eventList.getEventList().get(i).getName()));
+                        .title(eventList.get(i).getName()));
+
+                Log.d("myLog", "Coordinates: " + eventList.get(i).getPosition());
 
             }
+            Log.d("myLog", "Coordinates: ");
         }
 
         /*locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
