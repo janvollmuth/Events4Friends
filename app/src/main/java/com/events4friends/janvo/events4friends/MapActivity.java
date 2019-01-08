@@ -1,6 +1,7 @@
 package com.events4friends.janvo.events4friends;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -68,19 +69,39 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
-        for(int i = 0; i < eventList.size(); i++) {
+        Intent intent = getIntent();
 
-            if(eventList.get(i).getPosition() != null) {
+        if(intent.getExtras() != null) {
+            int eventId = checkOrigin(intent);
 
-                LatLng position = eventList.get(i).getPosition();
-                googleMap.addMarker(new MarkerOptions().position(position)
-                        .title(eventList.get(i).getName()));
+            for(int i = 0; i < eventList.size(); i++) {
 
-                Log.d("myLog", "Coordinates: " + eventList.get(i).getPosition());
+                if(eventList.get(i).getId() == eventId) {
+
+                    LatLng position = eventList.get(i).getPosition();
+                    googleMap.addMarker(new MarkerOptions().position(position)
+                            .title(eventList.get(i).getName()));
+
+                    googleMap.setMinZoomPreference(16.0f);
+                    googleMap.setMaxZoomPreference(16.0f);
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLng(position));
+
+                }
 
             }
-            Log.d("myLog", "Coordinates: ");
-        }
+
+        }else {
+
+            for(int i = 0; i < eventList.size(); i++) {
+
+                if(eventList.get(i).getPosition() != null) {
+
+                    LatLng position = eventList.get(i).getPosition();
+                    googleMap.addMarker(new MarkerOptions().position(position)
+                            .title(eventList.get(i).getName()));
+
+                }
+            }
 
         /*locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -98,9 +119,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         System.out.println("request location");
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_TO_REFRESH, MIN_DISTANCE_TO_REFRESH, MapActivity.this);*/
 
-        googleMap.setMinZoomPreference(12.0f);
-        googleMap.setMaxZoomPreference(16.0f);
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(myposition));
+            googleMap.setMinZoomPreference(12.0f);
+            googleMap.setMaxZoomPreference(16.0f);
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(myposition));
+
+        }
     }
 
     @Override
@@ -154,4 +177,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
 
     }*/
+
+    public Integer checkOrigin(Intent intent) {
+
+        int id = intent.getIntExtra("EventId", 0);
+        Log.d("myLog", "Id: " + id);
+
+        return id;
+
+    }
+
 }

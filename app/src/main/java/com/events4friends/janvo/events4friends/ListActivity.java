@@ -6,6 +6,7 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -38,14 +39,13 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
     private Context mContext = ListActivity.this;
     private ArrayList<Event> eventList;
     private ArrayList<Event> newEventList;
-    private Data data;
     private boolean listDefault;
     private SearchView searchView;
-    private LatLng myposition = new LatLng(48.0353709, 9.3265154);
+    //private LatLng myposition = new LatLng(48.0353709, 9.3265154);
+    private FloatingActionButton addEventButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         System.out.println("Erzeuge ListActivity...");
 
         super.onCreate(savedInstanceState);
@@ -53,6 +53,7 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
         setupBottomNavigationView();
         setupListView();
+        setupAddEventButton();
         setupCoordinates();
         setupSearchView();
     }
@@ -60,7 +61,6 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
     private void setupCoordinates() {
 
         Log.d("myLog", "setup Coordinates");
-        String myCity = "";
 
         Geocoder geocoder = new Geocoder(ListActivity.this, Locale.getDefault());
 
@@ -88,9 +88,6 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void setupBottomNavigationView() {
-
-        System.out.println("Initialisiere die Navigation Bar...");
-
         BottomNavigationView bottomNavigationView = findViewById(R.id.navigation);
         BottomNavigationViewHelper.enableNavigation(mContext, bottomNavigationView);
         Menu menu = bottomNavigationView.getMenu();
@@ -100,24 +97,19 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void setupListView() {
 
-        System.out.println("Bereite die Eventliste vor...");
-
         listDefault = true;
 
-        data = new Data();
+        if(Data.getEventList() == null) {
+            new Data();
+        }
 
-        System.out.println(Data.getEventList());
-
+        Log.d("myLog", "Event-Array (ListActivity) " + Data.getEventList().size());
         eventList = Data.getEventList();
+        Log.d("myLog", "Event-Array (ListActivity) " + Data.getEventList().size());
 
         newEventList = new ArrayList<>();
-
-        System.out.println(newEventList);
-
         listView = findViewById(R.id.listview);
-
         CustomAdapter customAdapter = new CustomAdapter();
-
         listView.setAdapter(customAdapter);
         listView.setOnItemClickListener(this);
     }
@@ -188,12 +180,23 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
         });
     }
 
+    public void setupAddEventButton() {
+
+        addEventButton = findViewById(R.id.addevent_button);
+        addEventButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent intent = new Intent(mContext, CreateEventActivity.class);
+                mContext.startActivity(intent);
+
+            }
+        });
+
+    }
+
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-        Log.d("myLog", "Position: " + position);
-        Log.d("myLog", "ID: " + id);
-        Log.d("myLog", "View: " + view);
 
         Intent intent = new Intent(mContext, ListObjectActivity.class);
 
@@ -238,8 +241,6 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
 
-            //System.out.println(listDefault);
-
             convertView = getLayoutInflater().inflate(R.layout.listview_event, null);
 
             ImageView imageView = convertView.findViewById(R.id.event_image);
@@ -248,13 +249,13 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
             if(newEventList.size() == 0) {
 
-                imageView.setImageResource(eventList.get(position).getImage());
+                imageView.setImageBitmap(eventList.get(position).getImage());
                 textview_name.setText(eventList.get(position).getName());
                 textview_description.setText(eventList.get(position).getDescription());
 
             }else {
 
-                imageView.setImageResource(newEventList.get(position).getImage());
+                imageView.setImageBitmap(newEventList.get(position).getImage());
                 textview_name.setText(newEventList.get(position).getName());
                 textview_description.setText(newEventList.get(position).getDescription());
             }

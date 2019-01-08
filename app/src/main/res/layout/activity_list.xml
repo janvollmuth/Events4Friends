@@ -47,6 +47,18 @@
         android:layout_height="wrap_content"
          />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/addevent_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/listview"
+        android:layout_alignParentEnd="true"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_margin="16dp"
+        app:fabSize="normal"
+        app:backgroundTint="@color/colorPrimaryDark"
+        app:srcCompat="@drawable/ic_add_black_24dp" />
 
 
 </RelativeLayout>

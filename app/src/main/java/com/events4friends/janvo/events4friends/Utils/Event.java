@@ -1,5 +1,7 @@
 package com.events4friends.janvo.events4friends.Utils;
 
+import android.graphics.Bitmap;
+
 import com.events4friends.janvo.events4friends.R;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -13,7 +15,7 @@ public class Event {
     private Date date;
     private LatLng position;
     private String address;
-    private int image = R.drawable.test_event_image;
+    private Bitmap image;
 
     public int getId() {
         return id;
@@ -43,20 +45,25 @@ public class Event {
         return address;
     }
 
-    public int getImage(){
+    public Bitmap getImage(){
         return image;
+    }
+
+    public void setImage(Bitmap bitmap) {
+        this.image = bitmap;
     }
 
     public Event(){
 
     }
 
-    public Event(int id, String name, String description, Date date, String address) {
+    public Event(int id, String name, String description, Date date, String address, Bitmap bitmap) {
 
         this.id = id;
         this.name = name;
         this.description = description;
         this.date = date;
         this.address = address;
+        this.image = bitmap;
     }
 }

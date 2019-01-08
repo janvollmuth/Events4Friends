@@ -7,6 +7,8 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -16,11 +18,12 @@ import com.events4friends.janvo.events4friends.Utils.Event;
 
 import java.util.ArrayList;
 
-public class ListObjectActivity extends AppCompatActivity {
+public class ListObjectActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Context mContext = ListObjectActivity.this;
     private static final int ACTIVITY_NUM = 0;
     private ArrayList<Event> eventList;
+    private int eventId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +35,9 @@ public class ListObjectActivity extends AppCompatActivity {
         int id = intent.getFlags();
 
         System.out.println(id);
+
+        Button showOnMap = findViewById(R.id.button_showOnMap);
+        showOnMap.setOnClickListener(this);
 
         prepareEventView(id);
         setupBottomNavigationView();
@@ -62,14 +68,23 @@ public class ListObjectActivity extends AppCompatActivity {
         for(int i = 0; i < eventList.size(); i++) {
             System.out.println("Check: " + i + " ID: " + eventList.get(i).getId() + " IDClicked: " + id);
             if(eventList.get(i).getId()== id) {
-                imageView.setImageResource(eventList.get(i).getImage());
+                eventId = eventList.get(i).getId();
+                imageView.setImageBitmap(eventList.get(i).getImage());
                 textview_name.setText(eventList.get(i).getName());
                 textview_description.setText(eventList.get(i).getDescription());
-                textview_location.setText("Mengen");
+                textview_location.setText(eventList.get(i).getAddress());
+                //TODO: Textfeld für Adresse zu klein
+                //TODO: Datum und Uhrzeit darstellen
                 //textView_time.setText((String) data.getEventList().get(i).getDate());
             }
         }
 
     }
 
+    @Override
+    public void onClick(View v) {
+        Intent intent = new Intent(mContext, MapActivity.class);
+        intent.putExtra("EventId", eventId);
+        mContext.startActivity(intent);
+    }
 }
