@@ -1,5 +1,6 @@
 package com.events4friends.janvo.events4friends;
 
+import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Address;
@@ -66,7 +67,7 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
         for(int i = 0; i < Data.getEventList().size(); i++) {
 
-            if(Data.getEventList().get(i).getAddress() != null) {
+            if(Data.getEventList().get(i).getAddress() != null && Data.getEventList().get(i).getPosition() == null) {
                 List<Address> addresses = null;
                 try {
                     addresses = geocoder.getFromLocationName(Data.getEventList().get(i).getAddress(), 1);
@@ -97,17 +98,20 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void setupListView() {
 
+        //old version for data
         listDefault = true;
-
         if(Data.getEventList() == null) {
             new Data();
         }
-
         Log.d("myLog", "Event-Array (ListActivity) " + Data.getEventList().size());
         eventList = Data.getEventList();
         Log.d("myLog", "Event-Array (ListActivity) " + Data.getEventList().size());
-
         newEventList = new ArrayList<>();
+
+
+        //new version for data with SQLite
+
+
         listView = findViewById(R.id.listview);
         CustomAdapter customAdapter = new CustomAdapter();
         listView.setAdapter(customAdapter);
@@ -210,7 +214,7 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
             intent.addFlags(eventId);
         }
 
-        mContext.startActivity(intent);
+        mContext.startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
 
     }
 

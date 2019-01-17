@@ -21,8 +21,16 @@ public class Event {
         return id;
     }
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -65,5 +73,11 @@ public class Event {
         this.date = date;
         this.address = address;
         this.image = bitmap;
+    }
+
+    public Event(int id, String name) {
+
+        this.id = id;
+        this.name = name;
     }
 }

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -21,14 +23,18 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class CreateEventActivity extends AppCompatActivity {
 
     private Context mContext = CreateEventActivity.this;
     private ImageButton image;
+    private EditText name;
     private EditText description;
     private EditText date;
     private EditText time;
+    private EditText address;
     private Intent intent;
     private final int requestCode = 1;
     private Uri imageUri;
@@ -42,7 +48,9 @@ public class CreateEventActivity extends AppCompatActivity {
         setContentView(R.layout.activity_create_event);
 
         image = findViewById(R.id.newevent_image);
+        name = findViewById(R.id.newevent_name);
         description = findViewById(R.id.newevent_description);
+        address = findViewById(R.id.newevent_address);
         date = findViewById(R.id.newevent_date);
         time = findViewById(R.id.newevent_time);
         addEvent = findViewById(R.id.addevent);
@@ -59,11 +67,21 @@ public class CreateEventActivity extends AppCompatActivity {
             }
         });
 
-        newEvent = new Event(11, "Simons Hausparty", "Die wird hammergeil.", new Date(12), "Weithartstraße 8 Mengen", bitmap);
-
         addEvent.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                Geocoder geocoder = new Geocoder(CreateEventActivity.this, Locale.getDefault());
+                List<Address> addresses = null;
+                try {
+                    addresses = geocoder.getFromLocationName(address.getText().toString(), 1);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Log.d("myLog", "Fehler Geocoding");
+                    return;
+                }
+
+                newEvent = new Event(Data.getEventList().size()+1, name.getText().toString(), description.getText().toString(), new Date(12), address.getText().toString(), bitmap);
 
                 Log.d("myLog", "Event-Array (CreateEventActivity) " + Data.getEventList().size());
                 Data.getEventList().add(newEvent);
