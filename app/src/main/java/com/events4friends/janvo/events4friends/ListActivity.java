@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SearchView;
@@ -24,7 +26,9 @@ import android.widget.TextView;
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
 import com.events4friends.janvo.events4friends.Utils.Data;
 import com.events4friends.janvo.events4friends.Utils.Event;
+import com.events4friends.janvo.events4friends.Utils.FireDBHelper;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.firestore.DocumentReference;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,19 +48,22 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
     private SearchView searchView;
     //private LatLng myposition = new LatLng(48.0353709, 9.3265154);
     private FloatingActionButton addEventButton;
+    private DocumentReference docRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         System.out.println("Erzeuge ListActivity...");
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list);
+        //setContentView(R.layout.activity_list);
+        setContentView(R.layout.test_layout);
+        setupFireDB();
 
-        setupBottomNavigationView();
+        /*setupBottomNavigationView();
         setupListView();
         setupAddEventButton();
         setupCoordinates();
-        setupSearchView();
+        setupSearchView();*/
     }
 
     private void setupCoordinates() {
@@ -280,6 +287,27 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
         if(newEventList.size() == 0) {
             System.out.println("Liste leer");
         }
+    }
+
+    public void setupFireDB() {
+
+        Button add = findViewById(R.id.test_button);
+
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                FireDBHelper dbHelper = new FireDBHelper();
+
+                EditText event = findViewById(R.id.test_event);
+                EditText name = findViewById(R.id.test_name);
+
+                String e = event.getText().toString();
+                String n = name.getText().toString();
+
+                dbHelper.saveEvent(e, n);
+
+            }
+        });
 
     }
 
