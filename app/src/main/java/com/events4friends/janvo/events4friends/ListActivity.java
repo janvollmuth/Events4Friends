@@ -1,13 +1,22 @@
 package com.events4friends.janvo.events4friends;
 
 import android.app.ActivityOptions;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -16,80 +25,94 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
-import com.events4friends.janvo.events4friends.Utils.Data;
 import com.events4friends.janvo.events4friends.Utils.Event;
 import com.events4friends.janvo.events4friends.Utils.FireDBHelper;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.firebase.firestore.DocumentReference;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.events4friends.janvo.events4friends.Utils.Constants.ERROR_DIALOG_REQUEST;
+import static com.events4friends.janvo.events4friends.Utils.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
+import static com.events4friends.janvo.events4friends.Utils.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
+
 public class ListActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
-    private static final String TAG = "HomeActivity";
+    //Variables
+    private static final String TAG = "ListActivity";
     private static final int ACTIVITY_NUM = 0;
-
-    private ListView listView;
     private Context mContext = ListActivity.this;
     private ArrayList<Event> eventList;
     private ArrayList<Event> newEventList;
     private boolean listDefault;
-    private SearchView searchView;
+    private boolean mLocationPermissionGrantes = false;
     //private LatLng myposition = new LatLng(48.0353709, 9.3265154);
+
+    //User-Interface
+    private ListView listView;
+    private SearchView searchView;
     private FloatingActionButton addEventButton;
-    private DocumentReference docRef;
+
+    //Firebase
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private StorageReference storageReference = storage.getReference();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        System.out.println("Erzeuge ListActivity...");
-
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_list);
-        setContentView(R.layout.test_layout);
-        setupFireDB();
+        setContentView(R.layout.activity_list);
 
-        /*setupBottomNavigationView();
+        setupBottomNavigationView();
         setupListView();
         setupAddEventButton();
         setupCoordinates();
-        setupSearchView();*/
+        setupSearchView();
     }
 
     private void setupCoordinates() {
 
-        Log.d("myLog", "setup Coordinates");
-
+        Log.d(TAG, "setup Coordinates");
         Geocoder geocoder = new Geocoder(ListActivity.this, Locale.getDefault());
 
-        for(int i = 0; i < Data.getEventList().size(); i++) {
+        for(int i = 0; i < FireDBHelper.getEventList().size(); i++) {
 
-            if(Data.getEventList().get(i).getAddress() != null && Data.getEventList().get(i).getPosition() == null) {
+            if(FireDBHelper.getEventList().get(i).getAddress() != null && FireDBHelper.getEventList().get(i).getPosition() == null) {
                 List<Address> addresses = null;
                 try {
-                    addresses = geocoder.getFromLocationName(Data.getEventList().get(i).getAddress(), 1);
+                    addresses = geocoder.getFromLocationName(FireDBHelper.getEventList().get(i).getAddress(), 1);
                 } catch (IOException e) {
                     e.printStackTrace();
+                    Log.d(TAG, "Fehler Geocoding");
                 }
 
                 Address address = null;
-                if (addresses != null) {
+                if (!addresses.isEmpty()) {
                     address = addresses.get(0);
+                    LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                    FireDBHelper.getEventList().get(i).setPosition(latLng);
                 }
-                LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                else {
+                    Log.d(TAG, "keine Koordianten gefunden");
+                }
 
-                Data.getEventList().get(i).setPosition(latLng);
-                Log.d("myLog", "Coordinates: " + Data.getEventList().get(i).getPosition());
+                Log.d(TAG, "Coordinates: " + FireDBHelper.getEventList().get(i).getPosition());
             }
 
         }
@@ -107,17 +130,11 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
         //old version for data
         listDefault = true;
-        if(Data.getEventList() == null) {
-            new Data();
-        }
-        Log.d("myLog", "Event-Array (ListActivity) " + Data.getEventList().size());
-        eventList = Data.getEventList();
-        Log.d("myLog", "Event-Array (ListActivity) " + Data.getEventList().size());
+
+        Log.d(TAG, "Event-Array (ListActivity) " + FireDBHelper.getEventList().size());
+        eventList = FireDBHelper.getEventList();
+        Log.d(TAG, "Event-Array (ListActivity) " + FireDBHelper.getEventList().size());
         newEventList = new ArrayList<>();
-
-
-        //new version for data with SQLite
-
 
         listView = findViewById(R.id.listview);
         CustomAdapter customAdapter = new CustomAdapter();
@@ -142,42 +159,34 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
                     CustomAdapter customAdapter = new CustomAdapter();
                     listView.setAdapter(customAdapter);
                 }
-
-
                 return false;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
 
+                newEventList = new ArrayList<>();
+
                 if(newText != null && !newText.isEmpty()) {
 
                     listDefault = false;
 
-                    for(int i = 0; i < Data.getEventList().size(); i++) {
-
-                        //System.out.println(newText + " " + data.getEventList().get(i).getName().toLowerCase().contains(newText));
-
-                        if(eventList.get(i).getName().toLowerCase().contains(newText) && !newEventList.contains(eventList.get(i))) {
-
-                            newEventList.add(Data.getEventList().get(i));
+                    for(int i = 0; i < FireDBHelper.getEventList().size(); i++) {
+                        //Log.d(TAG, "Test Liste: " + (eventList.get(i).getName().contains(newText) || eventList.get(i).getName().contains(newText)));
+                        if((eventList.get(i).getName().contains(newText) || eventList.get(i).getName().toLowerCase().contains(newText) || eventList.get(i).getName().toUpperCase().contains(newText) ) /*&& !newEventList.contains(eventList.get(i))*/) {
+                            newEventList.add(FireDBHelper.getEventList().get(i));
                         }
                     }
 
                     CustomAdapter customAdapter = new CustomAdapter();
                     listView.setAdapter(customAdapter);
-                    //showLists();
 
                 } else {
-
-                    //wenn der Eingabetext leer ist, wird die komplette liste angezeigt
 
                     int i = 0;
                     listDefault = true;
 
                     while(newEventList.size() != 0) {
-
-                        //System.out.println("Size:" + newData.getEventList().size() + "Removing: " + newData.getEventList().get(i).getName());
                         newEventList.remove(i);
 
                     }
@@ -185,7 +194,6 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
                     CustomAdapter customAdapter = new CustomAdapter();
                     listView.setAdapter(customAdapter);
                 }
-                //showLists();
                 return true;
             }
         });
@@ -199,6 +207,7 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
             public void onClick(View v) {
 
                 Intent intent = new Intent(mContext, CreateEventActivity.class);
+
                 mContext.startActivity(intent);
 
             }
@@ -213,12 +222,12 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
         if(newEventList.size() != 0){
             Event event = newEventList.get(position);
-            int eventId = event.getId();
-            intent.addFlags(eventId);
+            String eventName = event.getName();
+            intent.putExtra("Eventname", eventName);
         }else {
             Event event = eventList.get(position);
-            int eventId = event.getId();
-            intent.addFlags(eventId);
+            String eventName = event.getName();
+            intent.putExtra("Eventname", eventName);
         }
 
         mContext.startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
@@ -231,7 +240,7 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
         public int getCount() {
 
             if(newEventList.size() == 0 && listDefault) {
-                return Data.getEventList().size();
+                return FireDBHelper.getEventList().size();
             }else if(newEventList.size() == 0 && !listDefault){
                 return newEventList.size();
             }else {
@@ -260,13 +269,19 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
             if(newEventList.size() == 0) {
 
-                imageView.setImageBitmap(eventList.get(position).getImage());
+                imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_event_image));
+                //imageView.setImageBitmap(BitmapFactory.decodeFile(getImageFromStorage(eventList.get(position).getName())));
+                //imageView.setImageBitmap(BitmapFactory.decodeFile(getImageFromStorage(eventList.get(position).getName()).getAbsolutePath()));
+                //Log.d("myLog", String.valueOf(getImageFromStorage(eventList.get(position).getName()).getByteCount()));
                 textview_name.setText(eventList.get(position).getName());
                 textview_description.setText(eventList.get(position).getDescription());
 
             }else {
 
-                imageView.setImageBitmap(newEventList.get(position).getImage());
+                imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_event_image));
+                //imageView.setImageBitmap(BitmapFactory.decodeFile(getImageFromStorage(eventList.get(position).getName())));
+                imageView.setImageBitmap(BitmapFactory.decodeFile(getImageFromStorage(eventList.get(position).getName()).getAbsolutePath()));
+                //Log.d("myLog", String.valueOf(getImageFromStorage(eventList.get(position).getName()).getByteCount()));
                 textview_name.setText(newEventList.get(position).getName());
                 textview_description.setText(newEventList.get(position).getDescription());
             }
@@ -274,41 +289,30 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
         }
     }
 
-    private void showLists() {
+    private File getImageFromStorage(String name) {
 
-        for(int i = 0; i < eventList.size(); i++) {
-            System.out.println("eventList " + eventList.get(i).getName());
+        StorageReference imageReference = storageReference.child("images/" + name);
+        File localFile = null;
+        try {
+            localFile = File.createTempFile("images", "*");
+
+            imageReference.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+                @Override
+                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                    Log.d("myLog", "Download erfolgreich");
+                }
+            }).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        for(int i = 0; i < newEventList.size(); i++) {
-            System.out.println("newEventList " + newEventList.get(i).getName());
-        }
+        //Log.d(TAG, String.valueOf(localFile.getAbsolutePath()));
 
-        if(newEventList.size() == 0) {
-            System.out.println("Liste leer");
-        }
+        return localFile;
     }
-
-    public void setupFireDB() {
-
-        Button add = findViewById(R.id.test_button);
-
-        add.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                FireDBHelper dbHelper = new FireDBHelper();
-
-                EditText event = findViewById(R.id.test_event);
-                EditText name = findViewById(R.id.test_name);
-
-                String e = event.getText().toString();
-                String n = name.getText().toString();
-
-                dbHelper.saveEvent(e, n);
-
-            }
-        });
-
-    }
-
 }

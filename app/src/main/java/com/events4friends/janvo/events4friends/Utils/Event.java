@@ -12,10 +12,13 @@ public class Event {
     private int id;
     private String name;
     private String description;
-    private Date date;
+    private String hour;
+    private String minutes;
+    private String day;
+    private String month;
+    private String year;
     private LatLng position;
     private String address;
-    private Bitmap image;
 
     public int getId() {
         return id;
@@ -37,8 +40,8 @@ public class Event {
         return description;
     }
 
-    public Date getDate() {
-        return date;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public LatLng getPosition() {
@@ -53,26 +56,66 @@ public class Event {
         return address;
     }
 
-    public Bitmap getImage(){
-        return image;
+    public void setAddress(String address) {
+        this.address = address;
     }
 
-    public void setImage(Bitmap bitmap) {
-        this.image = bitmap;
+
+    public String getHour() {
+        return hour;
+    }
+
+    public void setHour(String hour) {
+        this.hour = hour;
+    }
+
+    public String getMinutes() {
+        return minutes;
+    }
+
+    public void setMinutes(String minutes) {
+        this.minutes = minutes;
+    }
+
+    public String getDay() {
+        return day;
+    }
+
+    public void setDay(String day) {
+        this.day = day;
+    }
+
+    public String getMonth() {
+        return month;
+    }
+
+    public void setMonth(String month) {
+        this.month = month;
+    }
+
+    public String getYear() {
+        return year;
+    }
+
+    public void setYear(String year) {
+        this.year = year;
     }
 
     public Event(){
 
     }
 
-    public Event(int id, String name, String description, Date date, String address, Bitmap bitmap) {
+    public Event(int id, String name, String description, String address, String hour, String minutes, String day, String month, String year) {
 
         this.id = id;
         this.name = name;
         this.description = description;
-        this.date = date;
         this.address = address;
-        this.image = bitmap;
+        this.hour = hour;
+        this.minutes = minutes;
+        this.day = day;
+        this.month = month;
+        this.year = year;
     }
 
     public Event(int id, String name) {

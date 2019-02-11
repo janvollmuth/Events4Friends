@@ -3,6 +3,7 @@ package com.events4friends.janvo.events4friends;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -13,17 +14,30 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
-import com.events4friends.janvo.events4friends.Utils.Data;
 import com.events4friends.janvo.events4friends.Utils.Event;
+import com.events4friends.janvo.events4friends.Utils.FireDBHelper;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
+import static java.lang.String.valueOf;
 
 public class ListObjectActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Context mContext = ListObjectActivity.this;
     private static final int ACTIVITY_NUM = 0;
-    private ArrayList<Event> eventList;
-    private int eventId;
+
+    //Variables
+    private DatabaseReference myRef = FireDBHelper.getDatabaseReference();
+    private String name;
+
+    //User-Interface
+    private ImageView imageView;
+    private TextView textview_name;
+    private TextView textview_description;
+    private TextView textview_location;
+    private TextView textview_time;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,14 +46,12 @@ public class ListObjectActivity extends AppCompatActivity implements View.OnClic
         setContentView(R.layout.activity_list_object);
 
         Intent intent = getIntent();
-        int id = intent.getFlags();
-
-        System.out.println(id);
+        String name = intent.getStringExtra("Eventname");
 
         Button showOnMap = findViewById(R.id.button_showOnMap);
         showOnMap.setOnClickListener(this);
 
-        prepareEventView(id);
+        prepareEventView(name);
         setupBottomNavigationView();
     }
 
@@ -52,39 +64,41 @@ public class ListObjectActivity extends AppCompatActivity implements View.OnClic
         menuItem.setChecked(true);
     }
 
-    public void prepareEventView(int id){
+    public void prepareEventView(String name){
 
-        System.out.println("Prepare...");
+        this.name = name;
 
-        eventList = Data.getEventList();
+        imageView = findViewById(R.id.listobject_image);
+        textview_name = findViewById(R.id.listobject_title);
+        textview_description = findViewById(R.id.listobject_description);
+        textview_location = findViewById(R.id.listobject_location_text);
+        textview_time = findViewById(R.id.listobject_time_text);
 
-        ImageView imageView = findViewById(R.id.listobject_image);
-        TextView textview_name = findViewById(R.id.listobject_title);
-        TextView textview_description = findViewById(R.id.listobject_description);
-        TextView textview_location = findViewById(R.id.listobject_location_text);
-        TextView textView_time = findViewById(R.id.listobject_time_text);
+        myRef.child("Eventlist").child(name).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Event event = dataSnapshot.getValue(Event.class);
+                String datetimeString = String.format("%02d:%02d , %02d.%02d.%04d", Integer.parseInt(event.getHour()),
+                        Integer.parseInt(event.getMinutes()), Integer.parseInt(event.getDay()), Integer.parseInt(event.getMonth()), Integer.parseInt(event.getYear()));
 
-
-        for(int i = 0; i < eventList.size(); i++) {
-            System.out.println("Check: " + i + " ID: " + eventList.get(i).getId() + " IDClicked: " + id);
-            if(eventList.get(i).getId()== id) {
-                eventId = eventList.get(i).getId();
-                imageView.setImageBitmap(eventList.get(i).getImage());
-                textview_name.setText(eventList.get(i).getName());
-                textview_description.setText(eventList.get(i).getDescription());
-                textview_location.setText(eventList.get(i).getAddress());
-                //TODO: Textfeld für Adresse zu klein
-                //TODO: Datum und Uhrzeit darstellen
-                //textView_time.setText((String) data.getEventList().get(i).getDate());
+                imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_event_image));
+                textview_name.setText(event.getName());
+                textview_description.setText(event.getDescription());
+                textview_location.setText(event.getAddress());
+                textview_time.setText(datetimeString);
             }
-        }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
     public void onClick(View v) {
         Intent intent = new Intent(mContext, MapActivity.class);
-        intent.putExtra("EventId", eventId);
+        intent.putExtra("Eventname", name);
         mContext.startActivity(intent);
     }
 }
