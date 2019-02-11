@@ -1,11 +1,6 @@
 package com.events4friends.janvo.events4friends.Utils;
 
-import android.graphics.Bitmap;
-
-import com.events4friends.janvo.events4friends.R;
 import com.google.android.gms.maps.model.LatLng;
-
-import java.util.Date;
 
 public class Event {
 
@@ -116,11 +111,5 @@ public class Event {
         this.day = day;
         this.month = month;
         this.year = year;
-    }
-
-    public Event(int id, String name) {
-
-        this.id = id;
-        this.name = name;
     }
 }

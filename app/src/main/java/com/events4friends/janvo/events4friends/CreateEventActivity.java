@@ -9,12 +9,9 @@ import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Geocoder;
 import android.net.Uri;
-import android.provider.MediaStore;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.format.Time;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -33,7 +30,6 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
@@ -50,7 +46,6 @@ public class CreateEventActivity extends AppCompatActivity {
     private Bitmap bitmap;
     private Event newEvent;
     private Calendar calendar;
-    private Time time;
     private DatePickerDialog datePickerDialog;
     private TimePickerDialog timePickerDialog;
     private int tmpDay, tmpMonth, tmpYear;
@@ -211,30 +206,5 @@ public class CreateEventActivity extends AppCompatActivity {
                     });
         }
 
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-
-        if(resultCode == RESULT_OK) {
-
-            if(this.requestCode == requestCode) {
-
-                imageUri = data.getData();
-                try {
-
-                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
-                    image.setImageBitmap(bitmap);
-
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
-
-        }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 }

@@ -1,6 +1,5 @@
 package com.events4friends.janvo.events4friends;
 
-import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,9 +12,6 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
-import com.events4friends.janvo.events4friends.Utils.Event;
-
-import java.util.ArrayList;
 
 public class SettingsActivity extends AppCompatActivity {
 

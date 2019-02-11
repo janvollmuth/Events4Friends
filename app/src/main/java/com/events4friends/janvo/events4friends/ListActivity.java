@@ -1,22 +1,15 @@
 package com.events4friends.janvo.events4friends;
 
 import android.app.ActivityOptions;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -29,13 +22,10 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
 import com.events4friends.janvo.events4friends.Utils.Event;
 import com.events4friends.janvo.events4friends.Utils.FireDBHelper;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -49,10 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import static com.events4friends.janvo.events4friends.Utils.Constants.ERROR_DIALOG_REQUEST;
-import static com.events4friends.janvo.events4friends.Utils.Constants.PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION;
-import static com.events4friends.janvo.events4friends.Utils.Constants.PERMISSIONS_REQUEST_ENABLE_GPS;
-
 public class ListActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     //Variables
@@ -62,8 +48,6 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
     private ArrayList<Event> eventList;
     private ArrayList<Event> newEventList;
     private boolean listDefault;
-    private boolean mLocationPermissionGrantes = false;
-    //private LatLng myposition = new LatLng(48.0353709, 9.3265154);
 
     //User-Interface
     private ListView listView;
@@ -103,6 +87,10 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
 
                 Address address = null;
+
+                if(addresses == null) {
+                    return;
+                }
                 if (!addresses.isEmpty()) {
                     address = addresses.get(0);
                     LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
@@ -128,7 +116,6 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void setupListView() {
 
-        //old version for data
         listDefault = true;
 
         Log.d(TAG, "Event-Array (ListActivity) " + FireDBHelper.getEventList().size());
@@ -270,18 +257,12 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
             if(newEventList.size() == 0) {
 
                 imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_event_image));
-                //imageView.setImageBitmap(BitmapFactory.decodeFile(getImageFromStorage(eventList.get(position).getName())));
-                //imageView.setImageBitmap(BitmapFactory.decodeFile(getImageFromStorage(eventList.get(position).getName()).getAbsolutePath()));
-                //Log.d("myLog", String.valueOf(getImageFromStorage(eventList.get(position).getName()).getByteCount()));
                 textview_name.setText(eventList.get(position).getName());
                 textview_description.setText(eventList.get(position).getDescription());
 
             }else {
 
                 imageView.setImageDrawable(getResources().getDrawable(R.drawable.test_event_image));
-                //imageView.setImageBitmap(BitmapFactory.decodeFile(getImageFromStorage(eventList.get(position).getName())));
-                imageView.setImageBitmap(BitmapFactory.decodeFile(getImageFromStorage(eventList.get(position).getName()).getAbsolutePath()));
-                //Log.d("myLog", String.valueOf(getImageFromStorage(eventList.get(position).getName()).getByteCount()));
                 textview_name.setText(newEventList.get(position).getName());
                 textview_description.setText(newEventList.get(position).getDescription());
             }

@@ -21,8 +21,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
-import static java.lang.String.valueOf;
-
 public class ListObjectActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Context mContext = ListObjectActivity.this;

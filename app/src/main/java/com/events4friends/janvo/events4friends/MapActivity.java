@@ -44,7 +44,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     //Variables
     private GoogleMap map;
-    private LocationManager locationManager;
     private LatLng myposition;
     private ArrayList<Event> eventList;
 

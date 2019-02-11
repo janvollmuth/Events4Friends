@@ -53,7 +53,6 @@ public class FireDBHelper {
         ArrayList<Event> eventList = new ArrayList<>();
 
         for(DataSnapshot snapshot: dataSnapshot.child("Eventlist").getChildren()) {
-            //Log.d("myLog", "Event: " + snapshot.getValue());
 
             HashMap<String, String > map = (HashMap<String, String>) snapshot.getValue();
 
