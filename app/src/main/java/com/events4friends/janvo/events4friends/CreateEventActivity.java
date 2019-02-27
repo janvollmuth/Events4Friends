@@ -23,6 +23,7 @@ import android.widget.Toast;
 
 import com.events4friends.janvo.events4friends.Utils.Event;
 import com.events4friends.janvo.events4friends.Utils.FireDBHelper;
+import com.events4friends.janvo.events4friends.Utils.ListHelper;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.storage.FirebaseStorage;
@@ -61,6 +62,7 @@ public class CreateEventActivity extends AppCompatActivity {
     private Button addEvent;
 
     //Firebase
+    private FireDBHelper fireDBHelper;
     private FirebaseStorage storage;
     private StorageReference storageReference;
 
@@ -90,7 +92,6 @@ public class CreateEventActivity extends AppCompatActivity {
                 intent.setType("image/*");
 
                 startActivityForResult(intent, requestCode);
-
             }
         });
 
@@ -154,13 +155,13 @@ public class CreateEventActivity extends AppCompatActivity {
                     return;
                 }
                 Log.d("myLog", "Uhrzeit:" + timeButton.getText());
-                newEvent = new Event(FireDBHelper.getEventList().size()+1, name.getText().toString(), description.getText().toString(), address.getText().toString(), String.valueOf(tmpHour),
+                newEvent = new Event(ListHelper.getLocaleEventList().size()+1, name.getText().toString(), description.getText().toString(), address.getText().toString(), String.valueOf(tmpHour),
                         String.valueOf(tmpMinutes), String.valueOf(tmpDay), String.valueOf(tmpMonth), String.valueOf(tmpYear));
 
                 if(!newEvent.getName().isEmpty() && !newEvent.getDescription().isEmpty() && !newEvent.getAddress().isEmpty() && !newEvent.getHour().isEmpty()
                         && !newEvent.getMinutes().isEmpty() && !newEvent.getDay().isEmpty() && !newEvent.getMonth().isEmpty() && !newEvent.getYear().isEmpty()) {
 
-                    FireDBHelper.writeEventToDatabase(newEvent);
+                    fireDBHelper.writeEventToDatabase(newEvent);
                     //uploadImage();
 
                     Intent intent = new Intent(mContext, ListActivity.class);

@@ -8,7 +8,7 @@
     android:layout_height="match_parent"
     tools:context=".ListActivity">
 
-    <android.widget.Toolbar
+    <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
@@ -18,12 +18,11 @@
     <ListView
         android:id="@+id/listview"
         android:layout_width="match_parent"
-        android:layout_height="491dp"
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/toolbar"
         android:layout_above="@+id/navigation"
-        android:layout_below="@+id/searchView"
         android:layout_alignParentStart="true"
         android:layout_marginStart="0dp"
-        android:layout_marginTop="7dp"
         android:layout_marginBottom="0dp" />
 
     <android.support.design.widget.BottomNavigationView
@@ -41,11 +40,19 @@
         app:layout_constraintRight_toRightOf="parent"
         app:menu="@menu/navigation" />
 
-    <SearchView
+    <com.miguelcatalan.materialsearchview.MaterialSearchView
         android:id="@+id/searchView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-         />
+        app:searchBackground="@color/colorPrimary"
+        app:searchSuggestionBackground="@color/colorPrimary"
+        app:searchCloseIcon="@drawable/ic_action_navigation_close_inverted"
+        app:searchBackIcon="@drawable/ic_action_navigation_arrow_back_inverted"
+        app:searchSuggestionIcon="@drawable/ic_suggestion"
+        android:textColor="@color/colorWhite"
+        android:textColorHint="@color/colorWhite"
+        android:hint="Suche"
+        />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/addevent_button"

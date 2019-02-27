@@ -3,7 +3,7 @@ package com.events4friends.janvo.events4friends;
 import android.app.ActivityOptions;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -20,12 +20,14 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.SearchView;
+
+import com.events4friends.janvo.events4friends.Utils.ListHelper;
+import com.miguelcatalan.materialsearchview.MaterialSearchView;
 import android.widget.TextView;
+import android.support.v7.widget.Toolbar;
 
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
 import com.events4friends.janvo.events4friends.Utils.Event;
-import com.events4friends.janvo.events4friends.Utils.FireDBHelper;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -51,7 +53,7 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
     //User-Interface
     private ListView listView;
-    private SearchView searchView;
+    private MaterialSearchView searchView;
     private FloatingActionButton addEventButton;
 
     //Firebase
@@ -70,17 +72,25 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
         setupSearchView();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.searchmenue_item, menu);
+        MenuItem item = menu.findItem(R.id.action_search);
+        searchView.setMenuItem(item);
+        return true;
+    }
+
     private void setupCoordinates() {
 
         Log.d(TAG, "setup Coordinates");
         Geocoder geocoder = new Geocoder(ListActivity.this, Locale.getDefault());
 
-        for(int i = 0; i < FireDBHelper.getEventList().size(); i++) {
+        for(int i = 0; i < ListHelper.getLocaleEventList().size(); i++) {
 
-            if(FireDBHelper.getEventList().get(i).getAddress() != null && FireDBHelper.getEventList().get(i).getPosition() == null) {
+            if(ListHelper.getLocaleEventList().get(i).getAddress() != null && ListHelper.getLocaleEventList().get(i).getPosition() == null) {
                 List<Address> addresses = null;
                 try {
-                    addresses = geocoder.getFromLocationName(FireDBHelper.getEventList().get(i).getAddress(), 1);
+                    addresses = geocoder.getFromLocationName(ListHelper.getLocaleEventList().get(i).getAddress(), 1);
                 } catch (IOException e) {
                     e.printStackTrace();
                     Log.d(TAG, "Fehler Geocoding");
@@ -94,13 +104,13 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
                 if (!addresses.isEmpty()) {
                     address = addresses.get(0);
                     LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-                    FireDBHelper.getEventList().get(i).setPosition(latLng);
+                    ListHelper.getLocaleEventList().get(i).setPosition(latLng);
                 }
                 else {
                     Log.d(TAG, "keine Koordianten gefunden");
                 }
 
-                Log.d(TAG, "Coordinates: " + FireDBHelper.getEventList().get(i).getPosition());
+                Log.d(TAG, "Coordinates: " + ListHelper.getLocaleEventList().get(i).getPosition());
             }
 
         }
@@ -116,11 +126,13 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void setupListView() {
 
+        ListHelper listHelper = new ListHelper();
+
         listDefault = true;
 
-        Log.d(TAG, "Event-Array (ListActivity) " + FireDBHelper.getEventList().size());
-        eventList = FireDBHelper.getEventList();
-        Log.d(TAG, "Event-Array (ListActivity) " + FireDBHelper.getEventList().size());
+        Log.d(TAG, "Event-Array (ListActivity) " + ListHelper.getLocaleEventList().size());
+        eventList = ListHelper.getLocaleEventList();
+        Log.d(TAG, "Event-Array (ListActivity) " + ListHelper.getLocaleEventList().size());
         newEventList = new ArrayList<>();
 
         listView = findViewById(R.id.listview);
@@ -131,11 +143,14 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
     private void setupSearchView() {
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(R.string.app_name);
+        toolbar.setTitleTextColor(Color.parseColor(getString(R.string.white)));
+
         searchView = findViewById(R.id.searchView);
 
-        searchView.setQueryHint("Type in the Event you searching for");
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        searchView.setOnQueryTextListener(new MaterialSearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String newText) {
 
@@ -158,10 +173,10 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
 
                     listDefault = false;
 
-                    for(int i = 0; i < FireDBHelper.getEventList().size(); i++) {
+                    for(int i = 0; i < ListHelper.getLocaleEventList().size(); i++) {
                         //Log.d(TAG, "Test Liste: " + (eventList.get(i).getName().contains(newText) || eventList.get(i).getName().contains(newText)));
                         if((eventList.get(i).getName().contains(newText) || eventList.get(i).getName().toLowerCase().contains(newText) || eventList.get(i).getName().toUpperCase().contains(newText) ) /*&& !newEventList.contains(eventList.get(i))*/) {
-                            newEventList.add(FireDBHelper.getEventList().get(i));
+                            newEventList.add(ListHelper.getLocaleEventList().get(i));
                         }
                     }
 
@@ -227,7 +242,7 @@ public class ListActivity extends AppCompatActivity implements AdapterView.OnIte
         public int getCount() {
 
             if(newEventList.size() == 0 && listDefault) {
-                return FireDBHelper.getEventList().size();
+                return ListHelper.getLocaleEventList().size();
             }else if(newEventList.size() == 0 && !listDefault){
                 return newEventList.size();
             }else {

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -19,7 +20,7 @@ import android.widget.Toast;
 
 import com.events4friends.janvo.events4friends.Utils.BottomNavigationViewHelper;
 import com.events4friends.janvo.events4friends.Utils.Event;
-import com.events4friends.janvo.events4friends.Utils.FireDBHelper;
+import com.events4friends.janvo.events4friends.Utils.ListHelper;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -43,16 +44,20 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Context mContext = MapActivity.this;
 
     //Variables
-    private GoogleMap map;
-    private LatLng myposition;
+    private Location myLocation;
     private ArrayList<Event> eventList;
+
+    //Google Maps
+    private GoogleMap map;
+    private LocationManager locationManager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
 
-        eventList = FireDBHelper.getEventList();
+        eventList = ListHelper.getLocaleEventList();
 
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -77,17 +82,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         this.map = googleMap;
         Intent intent = getIntent();
-        myposition = eventList.get(0).getPosition();
 
         setupLocation();
 
         //For ShowOnMap-View
-        if(intent.getExtras() != null) {
+        if (intent.getExtras() != null) {
             String eventname = checkOrigin(intent);
 
-            for(int i = 0; i < eventList.size(); i++) {
+            for (int i = 0; i < eventList.size(); i++) {
 
-                if(eventList.get(i).getName().contains(eventname)) {
+                if (eventList.get(i).getName().contains(eventname)) {
 
                     LatLng position = eventList.get(i).getPosition();
                     googleMap.addMarker(new MarkerOptions().position(position)
@@ -98,8 +102,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     googleMap.moveCamera(CameraUpdateFactory.newLatLng(position));
                 }
             }
-        }
-        else {
+        } else {
             for (int i = 0; i < eventList.size(); i++) {
 
                 if (eventList.get(i).getPosition() != null) {
@@ -111,8 +114,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
             }
             googleMap.setMinZoomPreference(12.0f);
-            googleMap.setMaxZoomPreference(16.0f);
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(myposition));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(myLocation.getLatitude(), myLocation.getLongitude())));
         }
     }
 
@@ -126,6 +128,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private void setupLocation() {
 
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Criteria criteria = new Criteria();
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        myLocation = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             map.setMyLocationEnabled(true);
@@ -135,7 +152,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
         map.setOnMyLocationButtonClickListener(this);
         map.setOnMyLocationClickListener(this);
-
     }
 
     @Override
@@ -145,6 +161,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             if (permissions.length == 1 &&
                     permissions[0] == Manifest.permission.ACCESS_FINE_LOCATION &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
                 map.setMyLocationEnabled(true);
             } else {
                 Toast.makeText(this, "MyLocation button clicked, but false", Toast.LENGTH_SHORT).show();
